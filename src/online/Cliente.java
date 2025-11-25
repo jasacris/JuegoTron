@@ -6,13 +6,18 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class Cliente {
-    private static HashMap<Integer, List<String>> listaJugadores = new HashMap<Integer, List<String>>();
-	private static String ip;
-	private static int puerto = 9999;
-	private Boolean disponible;
 
-    public Cliente (){
+    private static HashMap<Integer, List<String>> listaJugadores = new HashMap<Integer, List<String>>();
+    private static String ip;
+    private static int puerto = 8888;
+    private Boolean disponible;
+
+    public Cliente() {
         disponible = true;
+    }
+
+    public static HashMap<Integer, List<String>> getListaJugadores() {
+        return listaJugadores;
     }
 
     public void setDisponible(Boolean disponible) {
@@ -23,13 +28,18 @@ public class Cliente {
         return disponible;
     }
 
+    public String getIp() {
+        return ip;
+    }
+
+    public int getPuerto() {
+        return puerto;
+    }
+
     public static void main(String[] args) {
         Cliente cliente = new Cliente();
 
-        try (Socket s = new Socket(InetAddress.getLocalHost(), 4444);
-        DataInputStream dis = new DataInputStream(s.getInputStream());
-        DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-        ObjectInputStream ois = new ObjectInputStream(s.getInputStream())){
+        try (Socket s = new Socket(InetAddress.getLocalHost(), 4444); DataInputStream dis = new DataInputStream(s.getInputStream()); DataOutputStream dos = new DataOutputStream(s.getOutputStream()); ObjectInputStream ois = new ObjectInputStream(s.getInputStream())) {
 
             ip = InetAddress.getLocalHost().toString().split("/")[1];
 
@@ -46,13 +56,19 @@ public class Cliente {
             ex.printStackTrace();
         }
 
-        /*ExecutorService pool = new Executors.newCachedThreadPool();
-        pool.execute();*/
+        ExecutorService pool = Executors.newCachedThreadPool();
+
+        if (listaJugadores.size() % 2 != 0) {
+            pool.execute(new EsperarConexion(cliente, pool));
+        } else {
+            pool.execute(new ConectarJugador(cliente, pool));
+        }
+
     }
 
-    public static void mostrarJugadoresDisponibles(){
+    public static void mostrarJugadoresDisponibles() {
 
-        System.out.println("LISTA DE JUGADORES DISPONIBLES");
+        System.out.println("LISTA DE JUGADORES CONECTADOS");
         System.out.println("----------------------------------------------");
 
         for (int i = 0; i < listaJugadores.size(); i++) {
