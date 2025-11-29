@@ -1,41 +1,37 @@
 package online;
 
 import java.io.DataInputStream;
-import java.io.IOException;
 import java.net.Socket;
 
-public class RecibeDatos implements Runnable {
+public class RecibeDatos extends Thread {
 
-    private Socket s;
+    private Socket socket;
+    private DataInputStream entrada;
+    private VentanaJuego ventana;
 
-    public RecibeDatos(Socket s) {
-        this.s = s;
+    public RecibeDatos(Socket s, VentanaJuego v) {
+        this.socket = s;
+        this.ventana = v;
+        try {
+            this.entrada = new DataInputStream(socket.getInputStream());
+        } catch (Exception e) {
+        }
     }
 
     @Override
     public void run() {
-        System.out.println("Recibe datos");
-        try {
-            DataInputStream in = new DataInputStream(this.s.getInputStream());
-            String mensaje = in.readLine();
-            while (!mensaje.equals("DESCONECTAR")) {
-                System.out.println(mensaje);
-                mensaje = in.readLine();
-            }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } finally {
-            if (this.s != null) {
-                try {
-                    this.s.close();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+        while (true) {
+            try {
+                // Leeo: Quien envió (1 o 2) y que tecla pulsó
+                int idRemoto = entrada.readInt();
+                int tecla = entrada.readInt();
+
+                // Actualizo la dirección en la simulación local
+                ventana.cambiarDireccion(tecla, idRemoto);
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-
     }
-
 }

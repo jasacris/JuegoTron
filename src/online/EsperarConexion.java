@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class EsperarConexion implements Runnable {
 
@@ -19,7 +18,6 @@ public class EsperarConexion implements Runnable {
     @Override
     public void run() {
         System.out.println("ESPERAR CONEXION");
-        pool = Executors.newCachedThreadPool();
 
         int puerto = cliente.getPuerto();
 
@@ -31,8 +29,17 @@ public class EsperarConexion implements Runnable {
                     cliente.setDisponible(false);
                     System.out.println("Entra al servidor");
 
-                    pool.execute(new EnviaDatos(s));
-                    pool.execute(new RecibeDatos(s));
+                    VentanaJuego ventana = new VentanaJuego(1, s);
+
+                    // Inicio hilos para la comunicación
+                    EnviaDatos hiloEnvia = new EnviaDatos(s, 1);
+                    RecibeDatos hiloRecibe = new RecibeDatos(s, ventana);
+
+                    // Conecto ventana con el hilo que envia los datos
+                    ventana.setEnviaDatos(hiloEnvia);
+
+                    hiloEnvia.start();
+                    hiloRecibe.start();
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }

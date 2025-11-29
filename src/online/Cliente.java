@@ -42,12 +42,12 @@ public class Cliente {
         try (Socket s = new Socket(InetAddress.getLocalHost(), 4444); DataInputStream dis = new DataInputStream(s.getInputStream()); DataOutputStream dos = new DataOutputStream(s.getOutputStream()); ObjectInputStream ois = new ObjectInputStream(s.getInputStream())) {
 
             ip = InetAddress.getLocalHost().toString().split("/")[1];
-
+            // Envío al servidor mi ip y mi puerto
             dos.writeBytes(ip + "\r\n");
             dos.writeBytes(puerto + "\r\n");
-
+            // Recibo la lista de jugadores del servidor
             listaJugadores = (HashMap<Integer, List<String>>) ois.readObject();
-
+            // Muestro la lista de jugadores por pantalla
             mostrarJugadoresDisponibles();
 
         } catch (IOException ex) {
@@ -59,8 +59,10 @@ public class Cliente {
         ExecutorService pool = Executors.newCachedThreadPool();
 
         if (listaJugadores.size() % 2 != 0) {
+            // El primer cliente que se conecte esperará a que se conecte un segundo para poder jugar
             pool.execute(new EsperarConexion(cliente, pool));
         } else {
+            // El segundo cliente se conectará al cliente que se conecto inmediatamente antes que el
             pool.execute(new ConectarJugador(cliente, pool));
         }
 

@@ -1,44 +1,31 @@
 package online;
 
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.net.Socket;
-import java.util.Scanner;
 
-public class EnviaDatos implements Runnable {
+public class EnviaDatos extends Thread {
 
-    private Socket s;
+    private Socket socket;
+    private DataOutputStream salida;
+    private int miID; // 1 si soy Host, 2 si soy Guest
 
-    public EnviaDatos(Socket s) {
-        this.s = s;
-    }
-
-    @Override
-    public void run() {
-        System.out.println("Envia datos");
+    public EnviaDatos(Socket s, int id) {
+        this.socket = s;
+        this.miID = id;
         try {
-            DataOutputStream out = new DataOutputStream(this.s.getOutputStream());
-            Scanner entrada = new Scanner(System.in);
-            String mensaje = entrada.nextLine();
-            out.writeBytes(mensaje + "\r\n");
-            while (!mensaje.equals("DESCONECTAR")) {
-                mensaje = entrada.nextLine();
-                out.writeBytes(mensaje + "\r\n");
-            }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
+            this.salida = new DataOutputStream(socket.getOutputStream());
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (this.s != null) {
-                try {
-                    this.s.close();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
         }
-
     }
 
+    public void enviarTecla(int codigoTecla) {
+        try {
+            salida.writeInt(miID); // Envío quién soy
+            salida.writeInt(codigoTecla); // Envío qué pulsé
+            salida.flush(); // Me aseguro de haber mandado todos los datos
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
